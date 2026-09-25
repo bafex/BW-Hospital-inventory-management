@@ -1,0 +1,1 @@
+- [Generated client typecheck](generated-client-typecheck.md) — DOM iterable types are required when Orval emits Headers.entries() in the shared React client.

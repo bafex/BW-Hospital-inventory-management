@@ -10,6 +10,22 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: dashboard
+    description: Dashboard overview and operational summaries
+  - name: medicines
+    description: Medicine catalogue and stock
+  - name: operations
+    description: Receiving, dispensing, and stock adjustments
+  - name: alerts
+    description: Low-stock and expiry alerts
+  - name: chronic
+    description: Chronic collection schedules
+  - name: replenishment
+    description: Hospital replenishment preparation
+  - name: reports
+    description: Hospital inventory reports
+  - name: audit
+    description: Immutable operational audit history
 paths:
   /healthz:
     get:
@@ -24,6 +40,215 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get dashboard overview
+      responses:
+        "200":
+          description: Dashboard overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /medicines:
+    get:
+      operationId: listMedicines
+      tags: [medicines]
+      summary: List medicines with current stock
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string, enum: [all, normal, low, critical] }
+      responses:
+        "200":
+          description: Medicine list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Medicine" }
+    post:
+      operationId: createMedicine
+      tags: [medicines]
+      summary: Add a medicine to the catalogue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MedicineInput" }
+      responses:
+        "201":
+          description: Medicine created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Medicine" }
+  /medicines/{id}:
+    patch:
+      operationId: updateMedicine
+      tags: [medicines]
+      summary: Update medicine details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MedicineUpdate" }
+      responses:
+        "200":
+          description: Medicine updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Medicine" }
+  /operations/receive:
+    post:
+      operationId: receiveStock
+      tags: [operations]
+      summary: Receive a batch into hospital stock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReceiveStockInput" }
+      responses:
+        "201":
+          description: Stock received
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OperationResult" }
+  /operations/dispense:
+    post:
+      operationId: dispenseStock
+      tags: [operations]
+      summary: Dispense stock using FEFO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DispenseStockInput" }
+      responses:
+        "201":
+          description: Stock dispensed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OperationResult" }
+  /operations/adjust:
+    post:
+      operationId: adjustStock
+      tags: [operations]
+      summary: Record a stock adjustment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdjustStockInput" }
+      responses:
+        "201":
+          description: Stock adjusted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OperationResult" }
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [alerts]
+      summary: List active inventory alerts
+      responses:
+        "200":
+          description: Alert list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Alert" }
+  /chronic-schedules:
+    get:
+      operationId: listChronicSchedules
+      tags: [chronic]
+      summary: List upcoming chronic collections
+      responses:
+        "200":
+          description: Chronic collection schedule list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ChronicSchedule" }
+    post:
+      operationId: createChronicSchedule
+      tags: [chronic]
+      summary: Add a chronic collection schedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChronicScheduleInput" }
+      responses:
+        "201":
+          description: Schedule created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChronicSchedule" }
+  /replenishment:
+    get:
+      operationId: listReplenishment
+      tags: [replenishment]
+      summary: List replenishment candidates and requests
+      responses:
+        "200":
+          description: Replenishment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ReplenishmentItem" }
+    post:
+      operationId: submitReplenishment
+      tags: [replenishment]
+      summary: Submit a replenishment request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReplenishmentInput" }
+      responses:
+        "201":
+          description: Replenishment request submitted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OperationResult" }
+  /reports/consumption:
+    get:
+      operationId: getConsumptionReport
+      tags: [reports]
+      summary: Get consumption report data
+      responses:
+        "200":
+          description: Consumption report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConsumptionReport" }
+  /audit:
+    get:
+      operationId: listAuditLogs
+      tags: [audit]
+      summary: List immutable audit history
+      responses:
+        "200":
+          description: Audit history
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AuditLog" }
 components:
   schemas:
     HealthStatus:
@@ -33,4 +258,219 @@ components:
           type: string
       required:
         - status
+    Medicine:
+      type: object
+      required: [id, name, genericName, strength, form, category, stockUnits, packSize, minStock, status, expiryDate, batchNumber]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        genericName: { type: string }
+        strength: { type: string }
+        form: { type: string }
+        category: { type: string }
+        stockUnits: { type: integer }
+        packSize: { type: integer }
+        minStock: { type: integer }
+        status: { type: string, enum: [normal, low, critical] }
+        expiryDate: { type: string }
+        batchNumber: { type: string }
+        supplier: { type: string }
+        lastMovement: { type: string }
+    MedicineInput:
+      type: object
+      required: [name, genericName, strength, form, category, minStock, packSize]
+      properties:
+        name: { type: string }
+        genericName: { type: string }
+        strength: { type: string }
+        form: { type: string }
+        category: { type: string }
+        minStock: { type: integer, minimum: 0 }
+        packSize: { type: integer, minimum: 1 }
+    MedicineUpdate:
+      type: object
+      properties:
+        minStock: { type: integer, minimum: 0 }
+        status: { type: string, enum: [active, inactive] }
+    ReceiveStockInput:
+      type: object
+      required: [medicineId, batchNumber, supplier, packSize, packs, looseUnits, expiryDate]
+      properties:
+        medicineId: { type: integer }
+        batchNumber: { type: string }
+        supplier: { type: string }
+        packSize: { type: integer, minimum: 1 }
+        packs: { type: integer, minimum: 0 }
+        looseUnits: { type: integer, minimum: 0 }
+        expiryDate: { type: string }
+    DispenseStockInput:
+      type: object
+      required: [medicineId, quantity, prescriptionReference, patientReference]
+      properties:
+        medicineId: { type: integer }
+        quantity: { type: integer, minimum: 1 }
+        prescriptionReference: { type: string, minLength: 1 }
+        patientReference: { type: string, minLength: 1 }
+    AdjustStockInput:
+      type: object
+      required: [medicineId, quantity, reason]
+      properties:
+        medicineId: { type: integer }
+        quantity: { type: integer }
+        reason: { type: string, minLength: 1 }
+    OperationResult:
+      type: object
+      required: [message, updatedStock]
+      properties:
+        message: { type: string }
+        updatedStock: { type: integer }
+        transactionId: { type: integer }
+    Alert:
+      type: object
+      required: [id, type, severity, title, detail, medicine, time]
+      properties:
+        id: { type: integer }
+        type: { type: string, enum: [low-stock, critical, expiry, chronic] }
+        severity: { type: string, enum: [warning, critical, info] }
+        title: { type: string }
+        detail: { type: string }
+        medicine: { type: string }
+        time: { type: string }
+    ChronicSchedule:
+      type: object
+      required: [id, patientReference, displayName, medicine, quantity, intervalDays, nextCollection, status]
+      properties:
+        id: { type: integer }
+        patientReference: { type: string }
+        displayName: { type: string }
+        medicine: { type: string }
+        quantity: { type: integer }
+        intervalDays: { type: integer }
+        lastCollection: { type: string }
+        nextCollection: { type: string }
+        status: { type: string, enum: [due, upcoming, scheduled] }
+    ChronicScheduleInput:
+      type: object
+      required: [patientReference, displayName, medicineId, quantity, intervalDays, nextCollection]
+      properties:
+        patientReference: { type: string }
+        displayName: { type: string }
+        medicineId: { type: integer }
+        quantity: { type: integer, minimum: 1 }
+        intervalDays: { type: integer, minimum: 1 }
+        nextCollection: { type: string }
+    ReplenishmentItem:
+      type: object
+      required: [id, medicine, currentStock, minStock, suggestedQuantity, status]
+      properties:
+        id: { type: integer }
+        medicine: { type: string }
+        currentStock: { type: integer }
+        minStock: { type: integer }
+        suggestedQuantity: { type: integer }
+        status: { type: string, enum: [candidate, pending, submitted] }
+        requestedQuantity: { type: integer }
+    ReplenishmentInput:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [medicineId, quantity]
+            properties:
+              medicineId: { type: integer }
+              quantity: { type: integer, minimum: 1 }
+    ConsumptionReport:
+      type: object
+      required: [monthly, topMedicines, totalIssued]
+      properties:
+        monthly:
+          type: array
+          items:
+            type: object
+            required: [month, units]
+            properties:
+              month: { type: string }
+              units: { type: integer }
+        topMedicines:
+          type: array
+          items:
+            type: object
+            required: [medicine, units]
+            properties:
+              medicine: { type: string }
+              units: { type: integer }
+        totalIssued: { type: integer }
+    AuditLog:
+      type: object
+      required: [id, action, user, role, timestamp, description]
+      properties:
+        id: { type: integer }
+        action: { type: string }
+        user: { type: string }
+        role: { type: string }
+        timestamp: { type: string }
+        description: { type: string }
+    Dashboard:
+      type: object
+      required: [user, role, hospital, kpis, stockStatus, monthlyConsumption, topConsumed, recentMovements, upcomingCollections]
+      properties:
+        user:
+          type: object
+          required: [name, role]
+          properties:
+            name: { type: string }
+            role: { type: string }
+        hospital: { type: string }
+        kpis:
+          type: object
+          required: [totalMedicines, inStock, lowStock, expiringSoon, criticalItems]
+          properties:
+            totalMedicines: { type: integer }
+            inStock: { type: integer }
+            lowStock: { type: integer }
+            expiringSoon: { type: integer }
+            criticalItems: { type: integer }
+        stockStatus:
+          type: array
+          items:
+            type: object
+            required: [label, value]
+            properties:
+              label: { type: string }
+              value: { type: integer }
+        monthlyConsumption:
+          type: array
+          items:
+            type: object
+            required: [month, units]
+            properties:
+              month: { type: string }
+              units: { type: integer }
+        topConsumed:
+          type: array
+          items:
+            type: object
+            required: [medicine, units]
+            properties:
+              medicine: { type: string }
+              units: { type: integer }
+        recentMovements:
+          type: array
+          items:
+            type: object
+            required: [id, medicine, type, quantity, time, user]
+            properties:
+              id: { type: integer }
+              medicine: { type: string }
+              type: { type: string }
+              quantity: { type: integer }
+              time: { type: string }
+              user: { type: string }
+        upcomingCollections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChronicSchedule"
 

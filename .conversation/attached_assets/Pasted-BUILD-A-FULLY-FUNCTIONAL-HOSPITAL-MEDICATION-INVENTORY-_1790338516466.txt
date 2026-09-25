@@ -1,0 +1,1082 @@
+BUILD A FULLY FUNCTIONAL HOSPITAL MEDICATION INVENTORY MANAGEMENT WEB APP
+
+You are a senior full-stack software engineer and UI/UX designer.
+
+Build a fully functional, secure, responsive and reactive web application based on the project requirements below.
+
+The application is for:
+
+Republic of Botswana — Ministry of Health
+Hospital Medication Inventory Management System
+
+The system is designed for hospital-level medication inventory management in Botswana public hospitals.
+
+IMPORTANT: This is NOT a Central Medical Store (CMS) distribution-tracking dashboard. CMS remains the supplier. The application manages what happens inside the hospital: receiving medicines, stock tracking, dispensing, chronic collection scheduling, alerts, replenishment preparation, reporting and auditing.
+
+⸻
+
+1. TECHNOLOGY STACK
+
+Use the following stack from the project proposal:
+
+Frontend
+
+* HTML5
+* CSS3
+* Bootstrap 5
+* Minimal JavaScript
+* Chart.js for dashboard charts
+* Responsive design
+* Reactive UI updates without unnecessary full-page reloads
+
+Backend
+
+* Python 3
+* Django
+* Django ORM
+* Django authentication and permissions
+
+Database
+
+* PostgreSQL
+
+Security
+
+* HTTPS/TLS-ready
+* Secure password hashing using Django’s password hashing system
+* Role-Based Access Control
+* CSRF protection
+* XSS protection
+* SQL injection protection
+* Session timeout
+* Secure authentication
+* Server-side permission checking
+* Input validation
+* Database constraints
+* Audit logging
+* No plaintext passwords
+* No deletion or overwriting of stock transactions or audit records
+
+Reports
+
+* PDF generation using ReportLab or WeasyPrint
+* Printable/exportable replenishment requests
+
+Testing
+
+* Django test framework and/or pytest
+* Include tests for:
+    * stock calculations
+    * pack-to-unit conversion
+    * FEFO
+    * low-stock alerts
+    * expiry alerts
+    * dispensing
+    * replenishment
+    * role permissions
+    * audit logging
+    * transaction integrity
+
+⸻
+
+2. BRANDING AND VISUAL DESIGN
+
+The application should look like a professional Botswana Ministry of Health hospital system, NOT like a CMS distribution system.
+
+Use:
+
+* Botswana Coat of Arms prominently in the application branding
+* “Republic of Botswana”
+* “MINISTRY OF HEALTH”
+* “Hospital Medication Inventory Management System”
+
+Use a professional:
+
+* Navy/dark blue
+* White
+* Light grey
+* Subtle accent colours for alerts
+
+The design should be modern, clean and suitable for hospital staff.
+
+Do NOT create a flashy commercial website.
+
+Do NOT make the dashboard resemble a CMS supply/distribution dashboard.
+
+The application should visually communicate:
+
+Hospital → Pharmacy → Medication → Stock → Patients → Replenishment
+
+⸻
+
+3. APPLICATION LAYOUT
+
+Create a consistent application shell:
+
+Header
+
+Include:
+
+* Botswana Coat of Arms / Ministry branding
+* Hospital name
+* System name
+* Logged-in user
+* User role
+* Notifications
+* Logout
+
+Example:
+
+“Hospital Medication Inventory Management System”
+
+“Gaborone District Hospital”
+
+“Welcome, Ofentse”
+
+“Inventory Officer”
+
+Sidebar
+
+The sidebar should dynamically show only functions available to the logged-in user’s role.
+
+Possible navigation:
+
+* Dashboard
+* Inventory
+* Receiving
+* Dispensing
+* Chronic Patients
+* Replenishment
+* Alerts
+* Reports
+* User Management
+* Audit Log
+* Settings
+
+Do not show unauthorized sections to users.
+
+⸻
+
+4. USER ROLES
+
+Implement exactly these five main roles:
+
+Administrator
+
+Can:
+
+* Manage users
+* Manage medicine catalogue
+* Manage stock thresholds
+* Receive stock
+* Dispense medicines
+* Adjust stock
+* Manage chronic patients
+* View dashboards
+* View reports
+* View alerts
+* View audit logs
+
+Pharmacist / Dispensary Officer
+
+Can:
+
+* View relevant dashboard
+* Receive medicines
+* Dispense medicines
+* Manage chronic patients
+* Manage collection schedules
+* View low-stock and expiry information
+* View relevant reports
+
+Nurse
+
+Can:
+
+* View the relevant dashboard
+* View permitted medication information
+* View relevant chronic collection information
+* View relevant reports
+
+The Nurse must NOT have access to administrative or replenishment functions unless explicitly permitted by the requirements.
+
+Inventory Officer
+
+Can:
+
+* View inventory dashboard
+* Receive stock
+* Manage inventory
+* Adjust stock
+* View stock levels
+* View low-stock alerts
+* View expiry alerts
+* Generate replenishment requests
+* Edit replenishment quantities
+* Submit replenishment requests
+* Export replenishment requests
+* View relevant reports
+
+Auditor
+
+Read-only access.
+
+Can:
+
+* View audit logs
+* View relevant transaction records
+
+Cannot:
+
+* Change stock
+* Delete records
+* Dispense medicines
+* Receive stock
+* Adjust stock
+* Manage users
+
+⸻
+
+5. DASHBOARD
+
+The dashboard must be hospital medication focused.
+
+Do NOT include:
+
+* district medicine distribution
+* CMS distribution tracking
+* CMS warehouse analytics
+* national distribution charts
+
+Instead show:
+
+KPI cards
+
+* Total Medicines
+* In Stock
+* Low Stock
+* Expiring Soon
+* Critical Items / Replenishment Needed
+
+Charts
+
+1. Monthly Medicine Consumption
+2. Stock Status
+3. Top Consumed Medicines
+
+Tables
+
+4. Recent Stock Movements
+5. Upcoming Chronic Collections
+
+Alerts
+
+6. Alerts & Notifications
+
+Examples:
+
+* Low stock alert
+* Medicine expiring soon
+* Replenishment required
+* Chronic collection due
+
+The dashboard should update dynamically when stock is received, dispensed or adjusted.
+
+⸻
+
+6. INVENTORY MANAGEMENT
+
+Create a complete medicine inventory module.
+
+Medicine records should support:
+
+* Medicine name
+* Strength
+* Dosage form
+* Category
+* Minimum stock level
+* Active/inactive status
+
+Stock must be tracked at:
+
+Medicine → Batch → Units
+
+Each batch should contain:
+
+* Batch number
+* Quantity received
+* Package size
+* Number of packs
+* Individual units
+* Expiry date
+* Date received
+
+The system must display stock as:
+
+Full packs + loose units
+
+where applicable.
+
+Do not force staff to manually calculate loose tablets.
+
+⸻
+
+7. RECEIVING STOCK
+
+Create a receiving form.
+
+Fields should include:
+
+* Medicine
+* Batch number
+* Supplier/source
+* Package size
+* Number of packs
+* Loose units if applicable
+* Total units
+* Expiry date
+* Date received
+* Receiving user
+
+Automatically calculate:
+
+Number of packs × package size = units
+
+Show a conversion preview before confirmation.
+
+When stock is received:
+
+1. Validate the information.
+2. Save the batch.
+3. Update stock.
+4. Create a stock transaction.
+5. Create an audit log entry.
+
+⸻
+
+8. DISPENSING / ISSUING MEDICINE
+
+Create a professional dispensing interface.
+
+Allow the user to issue:
+
+* Full packs
+* Loose units
+
+The system must:
+
+FEFO
+
+Use:
+
+First Expiry First Out
+
+The system automatically selects the oldest unexpired batch first.
+
+The system must:
+
+* Exclude expired stock
+* Prevent over-issuing
+* Prevent negative stock
+* Calculate remaining stock
+* Update stock automatically
+* Record the transaction
+* Create an audit log
+
+Every issue MUST require:
+
+* Medicine
+* Quantity
+* Patient/facility reference where applicable
+* Prescription reference number
+* User
+* Date/time
+
+An issue must not be saved without the prescription reference.
+
+⸻
+
+9. STOCK ADJUSTMENTS
+
+Authorized users must be able to adjust stock.
+
+Every adjustment must require:
+
+* Medicine/batch
+* Adjustment quantity
+* Reason
+* User
+* Date/time
+
+IMPORTANT:
+
+Never overwrite the previous stock transaction.
+
+Instead:
+
+Create a new adjustment transaction.
+
+The original transaction must remain preserved.
+
+⸻
+
+10. LOW-STOCK MONITORING
+
+Each medicine can have a minimum stock threshold.
+
+Automatically detect:
+
+Current stock <= minimum stock
+
+Generate a low-stock alert.
+
+Show:
+
+* Medicine
+* Current stock
+* Minimum level
+* Difference
+* Alert status
+
+Use clear status labels:
+
+* NORMAL
+* LOW
+* CRITICAL
+
+Use both colour and text so the meaning is not dependent only on colour.
+
+⸻
+
+11. EXPIRY MONITORING
+
+Track batch expiry dates.
+
+Automatically identify medicines:
+
+* Already expired
+* Expiring soon
+
+Show:
+
+* Medicine
+* Batch
+* Quantity
+* Expiry date
+* Days remaining
+* Status
+
+Do not allow expired stock to be selected by FEFO dispensing.
+
+⸻
+
+12. CHRONIC PATIENT MANAGEMENT
+
+Create a Chronic Patients module.
+
+Use minimum patient information.
+
+Do NOT build a full medical-record system.
+
+Store:
+
+* Facility reference number
+* Display name
+* Medicine
+* Collection interval
+* Quantity per collection
+* Last collection
+* Next collection
+
+The prescription remains part of the hospital’s existing clinical process.
+
+The system should only record the prescription reference when required.
+
+⸻
+
+13. CHRONIC COLLECTION SCHEDULING
+
+Automatically calculate the next collection date.
+
+Example:
+
+Last collection:
+01 September
+
+Interval:
+30 days
+
+Next collection:
+01 October
+
+Show upcoming collections:
+
+* Due today
+* Due tomorrow
+* Due within 3 days
+* Due within 7 days
+
+Generate reminders for hospital staff.
+
+The reminders are for hospital staff, not patients.
+
+⸻
+
+14. REPLENISHMENT
+
+The system must help the Inventory Officer prepare replenishment requests.
+
+When medicines reach or fall below minimum stock:
+
+1. Generate a replenishment candidate.
+2. Show the medicine.
+3. Show current stock.
+4. Show minimum stock.
+5. Suggest/request a quantity.
+6. Allow Inventory Officer to edit the quantity.
+7. Allow submission.
+8. Lock the submitted request.
+9. Generate/export the request as PDF.
+
+The Inventory Officer remains in control.
+
+The application does NOT control CMS distribution.
+
+The exported request is simply prepared for sending to CMS.
+
+⸻
+
+15. REPORTS AND ANALYTICS
+
+Create a Reports section.
+
+Include:
+
+Inventory reports
+
+* Current stock
+* Low-stock medicines
+* Expiring medicines
+* Stock by medicine
+* Stock by batch
+
+Consumption reports
+
+* Daily consumption
+* Monthly consumption
+* Medicine consumption trends
+* Top consumed medicines
+
+Replenishment reports
+
+* Pending requests
+* Submitted requests
+* Replenishment history
+
+Chronic collection reports
+
+* Upcoming collections
+* Due collections
+* Collection history
+
+Audit reports
+
+* User activity
+* Stock transactions
+* Adjustments
+* Dispensing activity
+* Receiving activity
+
+Allow date filtering.
+
+Allow PDF export where appropriate.
+
+⸻
+
+16. AUDIT LOG
+
+Create a secure audit system.
+
+Record important actions such as:
+
+* Login
+* Logout
+* Stock received
+* Medicine issued
+* Stock adjusted
+* Medicine created
+* Medicine updated
+* User created
+* User updated
+* Replenishment submitted
+* Important configuration changes
+
+Record:
+
+* User
+* Role
+* Action
+* Date/time
+* Relevant record
+* Description
+
+Audit logs must be read-only.
+
+Do NOT provide an application button for deleting audit logs.
+
+⸻
+
+17. DATABASE DESIGN
+
+Use a normalized PostgreSQL relational database.
+
+Implement the required entities, including concepts for:
+
+* User
+* Role
+* Medicine
+* Medicine Batch
+* Stock Transaction
+* Patient
+* Chronic Schedule
+* Replenishment Request
+* Replenishment Item
+* Audit Log
+
+Use:
+
+* Foreign keys
+* Unique constraints
+* Check constraints
+* Non-negative stock rules
+* Proper indexes
+* Database transactions
+
+Stock deduction must be atomic.
+
+If two users attempt to issue the same stock simultaneously, use proper database transaction handling/locking to prevent inconsistent stock.
+
+⸻
+
+18. SECURITY
+
+Treat this as a healthcare-related system.
+
+Implement strong security throughout the application.
+
+Authentication
+
+* Secure login
+* Password hashing
+* Session management
+* Logout
+* Session timeout
+* Login protection
+
+Authorization
+
+Never rely only on hiding buttons.
+
+Every protected view/API endpoint must verify the user’s permissions server-side.
+
+Data security
+
+* CSRF protection
+* XSS protection
+* SQL injection protection
+* Secure cookies
+* Input validation
+* Output escaping
+* Secure headers where appropriate
+
+Auditability
+
+All important state-changing actions must create audit records.
+
+Database integrity
+
+Stock transactions and audit logs must not be freely editable/deletable.
+
+⸻
+
+19. REACTIVE BEHAVIOUR
+
+The application must feel like a real modern system.
+
+Examples:
+
+When stock is received:
+
+* Dashboard stock updates
+* Recent movements updates
+* Stock status updates
+
+When medicine is dispensed:
+
+* Stock decreases immediately
+* Consumption updates
+* Low-stock status updates if threshold is reached
+* Dashboard alerts update
+* Transaction appears in history
+
+When a medicine becomes low:
+
+* Alert appears
+* Dashboard KPI updates
+* Replenishment candidate appears
+
+When a medicine is approaching expiry:
+
+* Expiry alert appears
+
+When a chronic collection approaches:
+
+* Upcoming collection count updates
+* Reminder appears
+
+Use AJAX/fetch or another lightweight reactive approach where appropriate without unnecessarily complicating the project.
+
+⸻
+
+20. UI/UX REQUIREMENTS
+
+The system is intended for hospital staff who may have limited computer experience.
+
+Therefore:
+
+* Keep navigation simple
+* Use clear labels
+* Use large readable text
+* Avoid unnecessary steps
+* Use confirmation messages
+* Use validation messages
+* Clearly show success/error states
+* Use colour AND text for status
+* Make important warnings obvious
+* Keep receiving and dispensing workflows simple
+
+The application must be responsive for:
+
+* Desktop
+* Laptop
+* Tablet
+
+Mobile support is useful but desktop hospital computers are the primary target.
+
+⸻
+
+21. DASHBOARD ROLE CUSTOMIZATION
+
+Do NOT give every user the exact same dashboard.
+
+Use the same design language but customize the information/actions by role.
+
+Inventory Officer dashboard
+
+Focus on:
+
+* Stock
+* Low stock
+* Expiry
+* Replenishment
+* Consumption
+
+Pharmacist dashboard
+
+Focus on:
+
+* Dispensing
+* Medicines
+* Low stock
+* Expiry
+* Chronic collections
+* Recent transactions
+
+Nurse dashboard
+
+Focus on:
+
+* Relevant medication information
+* Chronic collections
+* Relevant alerts/reports
+
+Administrator dashboard
+
+Focus on:
+
+* Overall system status
+* Users
+* Inventory
+* Alerts
+* Reports
+* Audit activity
+
+Auditor dashboard
+
+Focus on:
+
+* Audit activity
+* Stock transactions
+* Read-only records
+
+⸻
+
+22. IMPORTANT SCOPE LIMITATIONS
+
+Do NOT add features that change the project’s scope.
+
+The system must NOT become:
+
+* A CMS management system
+* A national medicine distribution system
+* A patient electronic medical record
+* A diagnosis system
+* A clinical decision-support system
+* A financial management system
+* A doctor’s prescribing system
+* A CMS warehouse management system
+
+Doctors continue prescribing through the existing hospital process.
+
+CMS continues supplying hospitals.
+
+This system manages the hospital-side medication inventory and related workflows.
+
+⸻
+
+23. RESPONSIVENESS AND ERROR HANDLING
+
+Every form must have:
+
+* Required-field validation
+* Clear error messages
+* Server-side validation
+* Client-side validation where useful
+* Confirmation before destructive/high-impact actions
+* Success notification after completion
+
+Handle:
+
+* Database errors
+* Duplicate batch numbers
+* Invalid quantities
+* Expired batches
+* Insufficient stock
+* Unauthorized access
+* Session expiry
+* Invalid patient references
+* Invalid prescription references
+
+Do not expose raw database errors to users.
+
+⸻
+
+24. SEED / DEMO DATA
+
+Create realistic dummy data for demonstration.
+
+Do NOT use real patient information.
+
+Create sample:
+
+* Medicines
+* Batches
+* Stock transactions
+* Chronic patients using fake facility references
+* Collection schedules
+* Alerts
+* Replenishment requests
+* Users for each role
+
+Clearly mark all demonstration data as dummy/sample data.
+
+⸻
+
+25. DEMO LOGIN ACCOUNTS
+
+Create development/demo accounts for:
+
+* Administrator
+* Pharmacist
+* Nurse
+* Inventory Officer
+* Auditor
+
+Clearly document the demo credentials in the README.
+
+Do not use these credentials in production.
+
+⸻
+
+26. TESTING
+
+Create automated tests for the important business rules.
+
+At minimum test:
+
+Inventory
+
+* Receiving stock
+* Unit conversion
+* Batch creation
+* Stock calculation
+
+Dispensing
+
+* Successful dispensing
+* Insufficient stock
+* FEFO selection
+* Expired batch exclusion
+* Prescription reference requirement
+
+Alerts
+
+* Low-stock alert
+* Critical stock
+* Expiry alert
+* Chronic collection reminder
+
+Replenishment
+
+* Candidate generation
+* Editing quantities
+* Submission
+* PDF export
+
+Security
+
+* Unauthorized access
+* Role permissions
+* Auditor read-only access
+
+Audit
+
+* Transaction creates audit entry
+* Audit cannot be deleted/overwritten
+
+⸻
+
+27. PROJECT STRUCTURE
+
+Organize the Django project cleanly.
+
+Separate functionality into logical Django apps/modules such as:
+
+* authentication
+* inventory
+* dispensing
+* chronic_patients
+* replenishment
+* reports
+* alerts
+* audit
+
+Use reusable templates/components.
+
+Do not put the entire application into one giant file.
+
+Keep business logic separated from presentation.
+
+⸻
+
+28. DELIVERABLE
+
+Build the application completely.
+
+I do NOT want a static mockup.
+
+I want:
+
+* Working frontend
+* Working backend
+* Working database
+* Authentication
+* Role permissions
+* CRUD where appropriate
+* Inventory calculations
+* Stock transactions
+* FEFO
+* Alerts
+* Chronic scheduling
+* Replenishment
+* Reports
+* Audit logging
+* PDF export
+* Dashboard charts
+* Responsive UI
+* Validation
+* Error handling
+* Automated tests
+* Seed/demo data
+
+Every button should either perform its intended action or clearly indicate that the feature is intentionally outside the prototype scope.
+
+Do not create fake buttons that do nothing.
+
+⸻
+
+29. DEVELOPMENT APPROACH
+
+Build the application in logical stages:
+
+Stage 1
+
+Project setup + database + authentication + RBAC
+
+Stage 2
+
+Medicine catalogue + batches + inventory
+
+Stage 3
+
+Receiving + stock transactions
+
+Stage 4
+
+Dispensing + FEFO + prescription reference
+
+Stage 5
+
+Low-stock + expiry monitoring
+
+Stage 6
+
+Chronic patients + collection scheduling
+
+Stage 7
+
+Replenishment
+
+Stage 8
+
+Dashboard + reports + analytics
+
+Stage 9
+
+Audit logging + security hardening
+
+Stage 10
+
+Testing + demo data + final UI polish
+
+Make sure each stage integrates with the previous stages.
+
+⸻
+
+30. FINAL UI REQUIREMENT
+
+Use the attached/reference dashboard concept as visual inspiration only.
+
+The final dashboard must be clearly recognizable as:
+
+A Botswana Ministry of Health HOSPITAL MEDICATION INVENTORY SYSTEM
+
+and NOT:
+
+A CMS distribution monitoring system.
+
+The Botswana Coat of Arms and Ministry of Health branding should be visible throughout the main application shell.
+
+Prioritize usability, security, data integrity and accurate hospital medication workflows over decorative graphics.
+
+Before finishing, verify that every implemented feature maps back to the project’s requirements and does not expand the system beyond its defined scope.

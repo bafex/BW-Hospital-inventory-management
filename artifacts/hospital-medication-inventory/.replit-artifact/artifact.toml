@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Hospital Medication Inventory"
+description = "A responsive Botswana Ministry of Health hospital medication inventory system for stock oversight, receiving, dispensing, alerts, chronic collections, replenishment, reports, and audit visibility."
+version = "1.0.0"
+id = "artifacts/hospital-medication-inventory"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22816
+
+[services.development]
+run = "pnpm --filter @workspace/hospital-medication-inventory run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/hospital-medication-inventory", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/hospital-medication-inventory/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22816"
+BASE_PATH = "/"
