@@ -17,6 +17,7 @@ import {
   useReceiveStock, useSubmitReplenishment
 } from '@workspace/api-client-react';
 import { Route, Switch, Link, useLocation } from 'wouter';
+import coatOfArms from '@assets/botswana-coat-of-arms.jpg';
 import NotFound from '@/pages/not-found';
 
 const queryClient = new QueryClient();
@@ -92,7 +93,7 @@ function Shell({ children }: { children: ReactNode }) {
       <div className="flex min-h-[78px] items-center gap-3 px-4 md:px-7">
         <button className="rounded-lg p-2 text-primary hover:bg-secondary lg:hidden" onClick={() => setOpen(!open)} aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open} aria-controls="mobile-navigation" data-testid="button-mobile-menu"><Menu className="h-5 w-5" /></button>
         <Link href="/" className="flex min-w-0 flex-1 items-center gap-3" data-testid="link-home">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-primary bg-secondary text-primary shadow-inner"><ShieldCheck className="h-6 w-6" /></span>
+          <img src={coatOfArms} alt="Coat of arms of Botswana" className="h-10 w-[52px] shrink-0 object-contain mix-blend-multiply" data-testid="img-botswana-coat-of-arms" />
           <span className="min-w-0">
             <span className="mono block truncate text-[8px] font-bold uppercase tracking-[.16em] text-muted-foreground sm:text-[9px]">Republic of Botswana · Ministry of Health</span>
             <span className="institutional-serif block truncate text-[13px] font-bold leading-tight text-primary sm:text-base">Hospital Medication Inventory System</span>
