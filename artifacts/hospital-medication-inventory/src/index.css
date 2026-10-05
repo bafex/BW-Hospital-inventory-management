@@ -30,45 +30,45 @@
 }
 
 :root {
-  --background: 42 33% 96%;
-  --foreground: 203 38% 19%;
-  --border: 40 22% 87%;
-  --input: 40 22% 87%;
-  --ring: 166 47% 34%;
-  --card: 42 40% 99%;
-  --card-foreground: 203 38% 19%;
-  --primary: 166 47% 34%;
-  --primary-foreground: 42 40% 99%;
-  --secondary: 196 38% 91%;
-  --secondary-foreground: 203 38% 22%;
-  --muted: 42 24% 92%;
-  --muted-foreground: 203 15% 46%;
-  --accent: 43 82% 57%;
-  --accent-foreground: 203 38% 19%;
+  --background: 234 43% 96%;
+  --foreground: 230 52% 22%;
+  --border: 236 36% 84%;
+  --input: 236 36% 84%;
+  --ring: 236 36% 67%;
+  --card: 0 0% 100%;
+  --card-foreground: 230 52% 22%;
+  --primary: 230 52% 22%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 235 38% 92%;
+  --secondary-foreground: 230 52% 22%;
+  --muted: 234 30% 93%;
+  --muted-foreground: 232 14% 46%;
+  --accent: 236 36% 67%;
+  --accent-foreground: 230 52% 22%;
   --destructive: 6 57% 47%;
   --destructive-foreground: 42 40% 99%;
-  --app-font-sans: 'DM Sans', sans-serif;
+  --app-font-sans: 'DM Sans', 'Segoe UI', Arial, sans-serif;
   --app-font-mono: 'Space Mono', monospace;
   --radius: 0.7rem;
-  --shadow-sm: 0 4px 16px hsl(203 38% 19% / 0.05);
-  --shadow-md: 0 10px 30px hsl(203 38% 19% / 0.08);
+  --shadow-sm: 0 4px 16px hsl(230 52% 22% / 0.06);
+  --shadow-md: 0 10px 30px hsl(230 52% 22% / 0.1);
 }
 
 .dark {
-  --background: 203 38% 11%;
-  --foreground: 42 30% 94%;
-  --border: 203 25% 25%;
-  --input: 203 25% 25%;
-  --card: 203 33% 15%;
-  --card-foreground: 42 30% 94%;
-  --primary: 163 46% 52%;
-  --primary-foreground: 203 38% 11%;
-  --secondary: 203 25% 23%;
-  --secondary-foreground: 42 30% 94%;
-  --muted: 203 26% 20%;
-  --muted-foreground: 203 15% 69%;
-  --accent: 43 74% 55%;
-  --accent-foreground: 203 38% 11%;
+  --background: 230 35% 12%;
+  --foreground: 234 35% 94%;
+  --border: 230 24% 27%;
+  --input: 230 24% 27%;
+  --card: 230 33% 16%;
+  --card-foreground: 234 35% 94%;
+  --primary: 236 42% 72%;
+  --primary-foreground: 230 45% 14%;
+  --secondary: 230 24% 24%;
+  --secondary-foreground: 234 35% 94%;
+  --muted: 230 25% 20%;
+  --muted-foreground: 232 18% 70%;
+  --accent: 236 42% 72%;
+  --accent-foreground: 230 45% 14%;
   --destructive: 6 57% 57%;
   --destructive-foreground: 42 40% 99%;
 }
@@ -84,6 +84,15 @@
   .lift { box-shadow: var(--shadow-sm); }
   .lift:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
   .mono { font-family: var(--app-font-mono); }
+  .institutional-serif { font-family: Georgia, 'Times New Roman', serif; }
+  main [data-testid^="kpi-"] { align-items: center; border: 2px solid hsl(var(--primary)); border-radius: 9999px; display: flex; flex-direction: column; justify-content: center; min-height: 126px; padding: 14px 18px; text-align: center; }
+  main [data-testid^="kpi-"] > div:first-child { justify-content: center; margin-bottom: 4px; }
+  main [data-testid^="kpi-"] > div:first-child > span:last-child { display: none; }
+  @media (max-width: 639px) {
+    main > div:has(> [data-testid="kpi-medicine-lines"]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    main [data-testid^="kpi-"] { min-height: 108px; padding: 12px 8px; }
+    main [data-testid="kpi-critical-items"] { grid-column: 1 / -1; justify-self: center; max-width: calc(50% - 6px); width: 100%; }
+  }
   .page-in { animation: pageIn .32s ease both; }
   .pulse-soft { animation: pulseSoft 2.4s ease-in-out infinite; }
 }

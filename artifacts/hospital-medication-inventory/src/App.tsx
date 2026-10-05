@@ -4,9 +4,9 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import {
-  Activity, AlertTriangle, ArrowDownToLine, ArrowUpFromLine, BarChart3, Bell, Boxes,
+  Activity, AlertTriangle, ArrowDownToLine, ArrowUpFromLine, BarChart3, Bell,
   Check, ChevronRight, Clock3, FileClock, FileText, HeartPulse, LayoutDashboard,
-  Menu, PackagePlus, Pill, Plus, RefreshCw, Search, Settings2, ShieldCheck, Truck, X
+  Menu, PackagePlus, Pill, Plus, RefreshCw, Search, ShieldCheck, Truck, X
 } from 'lucide-react';
 import {
   getGetConsumptionReportQueryKey, getGetDashboardQueryKey, getListAlertsQueryKey,
@@ -58,11 +58,11 @@ function LoadingState({ rows = 4 }: { rows?: number }) { return <div className="
 function ErrorState({ retry }: { retry?: () => void }) { return <div className="rounded-xl border border-[#e8c5bf] bg-[#fff5f2] p-8 text-center" data-testid="state-error"><AlertTriangle className="mx-auto mb-3 h-7 w-7 text-destructive" /><p className="font-semibold">We could not load this view</p><p className="mt-1 text-sm text-muted-foreground">The service may be briefly unavailable. Try again.</p>{retry && <button onClick={retry} className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" data-testid="button-retry">Retry</button>}</div>; }
 
 function PageTitle({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: ReactNode }) {
-  return <div className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><p className="mono mb-2 text-[9px] font-bold uppercase tracking-[.18em] text-muted-foreground">Republic of Botswana · Ministry of Health · Hospital Medication Inventory Management System</p><p className="mono mb-2 text-[10px] font-bold uppercase tracking-[.2em] text-primary">{eyebrow}</p><h1 className="text-2xl font-bold tracking-tight text-foreground md:text-[30px]" data-testid={`heading-${title.toLowerCase().replaceAll(' ', '-')}`}>{title}</h1><p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{description}</p></div>{action}</div>;
+  return <div className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><p className="mono mb-2 text-[10px] font-bold uppercase tracking-[.2em] text-primary">{eyebrow}</p><h1 className="institutional-serif text-2xl font-bold tracking-tight text-foreground md:text-[30px]" data-testid={`heading-${title.toLowerCase().replaceAll(' ', '-')}`}>{title}</h1><p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{description}</p></div>{action}</div>;
 }
 
 function SectionLabel({ children, detail }: { children: ReactNode; detail?: string }) { return <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-bold tracking-tight">{children}</h2>{detail && <span className="text-xs text-muted-foreground">{detail}</span>}</div>; }
-function EmptyState({ icon: Icon, title, detail }: { icon: typeof Boxes; title: string; detail: string }) { return <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center" data-testid="state-empty"><Icon className="mx-auto mb-3 h-8 w-8 text-primary/60" /><p className="font-semibold">{title}</p><p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">{detail}</p></div>; }
+function EmptyState({ icon: Icon, title, detail }: { icon: typeof Pill; title: string; detail: string }) { return <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center" data-testid="state-empty"><Icon className="mx-auto mb-3 h-8 w-8 text-primary/60" /><p className="font-semibold">{title}</p><p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">{detail}</p></div>; }
 
 function Modal({ open, onClose, title, children, wide = false }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
   if (!open) return null;
@@ -71,12 +71,74 @@ function Modal({ open, onClose, title, children, wide = false }: { open: boolean
 function Field({ label, value, onChange, type = 'text', placeholder, required = true }: { label: string; value: string | number; onChange: (value: string) => void; type?: string; placeholder?: string; required?: boolean }) { return <label className="block space-y-1.5"><span className="text-xs font-semibold text-muted-foreground">{label}{required && <span className="ml-1 text-destructive">*</span>}</span><input type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/15" data-testid={`input-${label.toLowerCase().replaceAll(' ', '-')}`} /></label>; }
 function SubmitButton({ children, pending, onClick, testId = 'button-submit' }: { children: ReactNode; pending?: boolean; onClick?: () => void; testId?: string }) { return <button type="button" disabled={pending} onClick={onClick} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60" data-testid={testId}>{pending && <RefreshCw className="h-4 w-4 animate-spin" />}{children}</button>; }
 
+type NavItem = { href: string; label: string; icon: typeof LayoutDashboard };
+
+function NavigationLinks({ items, location, onNavigate }: { items: NavItem[]; location: string; onNavigate?: () => void }) {
+  return <nav className="space-y-1">{items.map(({ href, label, icon: Icon }) => {
+    const active = href === '/' ? location === href : location.startsWith(href);
+    return <Link key={href} href={href} onClick={onNavigate} className={cx('flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors', active ? 'bg-[#394584] text-white shadow-sm' : 'text-[#e0e2f4] hover:bg-white/10 hover:text-white')} data-testid={`link-nav-${label.toLowerCase().replaceAll(' ', '-')}`}><Icon className="h-[17px] w-[17px] shrink-0" /><span>{label}</span></Link>;
+  })}</nav>;
+}
+
 function Shell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const [open, setOpen] = useState(false);
   const dashboard = useGetDashboard();
   const user = dashboard.data?.user;
-  return <div className="min-h-[100dvh] bg-background"><aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] border-r border-[#d8e0dc] bg-[#edf3f0] lg:block"><div className="flex h-full flex-col px-4 py-5"><Link href="/" className="mb-8 flex items-center gap-3 px-2" data-testid="link-home"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm"><Boxes className="h-5 w-5" /></div><div><p className="text-sm font-bold tracking-tight">MediLedger</p><p className="mono text-[9px] uppercase tracking-[.16em] text-muted-foreground">Hospital pharmacy</p></div></Link><div className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[.18em] text-muted-foreground">Workspace</div><nav className="space-y-1">{nav.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setOpen(false)} className={cx('flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold', (href === '/' ? location === href : location.startsWith(href)) ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:bg-card/70 hover:text-foreground')} data-testid={`link-nav-${label.toLowerCase().replaceAll(' ', '-')}`}><Icon className="h-[17px] w-[17px]" /><span>{label}</span>{label === 'Alerts' && <span className="ml-auto rounded-full bg-[#f5d6d0] px-1.5 py-0.5 text-[10px] text-[#a83d31]">4</span>}</Link>)}</nav><div className="mb-2 mt-8 px-2 text-[10px] font-bold uppercase tracking-[.18em] text-muted-foreground">Records</div><nav className="space-y-1">{secondaryNav.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className={cx('flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold', location.startsWith(href) ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:bg-card/70 hover:text-foreground')} data-testid={`link-nav-${label.toLowerCase().replaceAll(' ', '-')}`}><Icon className="h-[17px] w-[17px]" /><span>{label}</span></Link>)}</nav><div className="mt-auto rounded-xl border border-[#d5e2db] bg-card/70 p-3"><div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /><p className="text-xs font-bold">Stockroom protected</p></div><p className="mt-1 text-[11px] leading-4 text-muted-foreground">Last sync 2 minutes ago</p></div><div className="mt-4 flex items-center gap-3 border-t border-[#d8e0dc] px-2 pt-4"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#d6e4df] text-xs font-bold text-primary">{initials(user?.name)}</div><div className="min-w-0"><p className="truncate text-xs font-bold" data-testid="text-user-name">{user?.name ?? 'Pharmacy team'}</p><p className="truncate text-[11px] text-muted-foreground">{user?.role ?? 'Inventory operations'}</p></div><Settings2 className="ml-auto h-4 w-4 text-muted-foreground" /></div></div></aside><header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur lg:ml-[248px]"><div className="flex h-[68px] items-center justify-between px-4 md:px-8"><button className="rounded-lg p-2 lg:hidden" onClick={() => setOpen(!open)} data-testid="button-mobile-menu"><Menu className="h-5 w-5" /></button><div className="hidden items-center gap-2 lg:flex"><span className="h-2 w-2 rounded-full bg-primary pulse-soft" /><span className="text-xs font-semibold text-muted-foreground">Operations console</span></div><div className="flex items-center gap-3"><div className="hidden items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground md:flex"><Search className="h-4 w-4" />Press <span className="mono rounded bg-muted px-1.5 py-0.5 text-[10px]">/</span> to search</div><button className="relative rounded-lg p-2 text-muted-foreground hover:bg-muted" data-testid="button-notifications"><Bell className="h-[18px] w-[18px]" /><span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-destructive" /></button><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#d6e4df] text-[10px] font-bold text-primary lg:hidden">{initials(user?.name)}</div></div></div></header>{open && <div className="fixed inset-0 z-40 bg-foreground/20 lg:hidden" onClick={() => setOpen(false)}><div className="h-full w-[280px] bg-[#edf3f0] p-4 shadow-xl" onClick={(event) => event.stopPropagation()}><div className="mb-7 flex items-center gap-3 px-2"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Boxes className="h-5 w-5" /></div><div><p className="text-sm font-bold">MediLedger</p><p className="mono text-[9px] text-muted-foreground">Hospital pharmacy</p></div></div>{[...nav, ...secondaryNav].map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-muted-foreground hover:bg-card hover:text-foreground" data-testid={`link-mobile-${label.toLowerCase().replaceAll(' ', '-')}`}><Icon className="h-[17px] w-[17px]" />{label}</Link>)}</div></div>}<main className="page-in px-4 py-6 md:px-8 md:py-8 lg:ml-[248px] lg:px-10">{children}</main></div>;
+  const hospital = dashboard.data?.hospital;
+
+  return <div className="min-h-[100dvh] bg-background">
+    <header className="sticky top-0 z-30 border-b-[3px] border-primary bg-card shadow-sm">
+      <div className="flex min-h-[78px] items-center gap-3 px-4 md:px-7">
+        <button className="rounded-lg p-2 text-primary hover:bg-secondary lg:hidden" onClick={() => setOpen(!open)} aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open} aria-controls="mobile-navigation" data-testid="button-mobile-menu"><Menu className="h-5 w-5" /></button>
+        <Link href="/" className="flex min-w-0 flex-1 items-center gap-3" data-testid="link-home">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-primary bg-secondary text-primary shadow-inner"><ShieldCheck className="h-6 w-6" /></span>
+          <span className="min-w-0">
+            <span className="mono block truncate text-[8px] font-bold uppercase tracking-[.16em] text-muted-foreground sm:text-[9px]">Republic of Botswana · Ministry of Health</span>
+            <span className="institutional-serif block truncate text-[13px] font-bold leading-tight text-primary sm:text-base">Hospital Medication Inventory System</span>
+            <span className="hidden truncate text-[10px] text-muted-foreground sm:block">{hospital ?? 'Hospital pharmacy'}</span>
+          </span>
+        </Link>
+        <div className="hidden items-center gap-3 border-l border-border pl-4 sm:flex">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-xs font-bold text-primary">{initials(user?.name)}</div>
+          <div className="hidden min-w-0 md:block">
+            <p className="max-w-40 truncate text-xs font-bold" data-testid="text-user-name">{user?.name ?? 'Pharmacy team'}</p>
+            <p className="max-w-40 truncate text-[11px] text-muted-foreground">{user?.role ?? 'Inventory operations'}</p>
+          </div>
+        </div>
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-primary sm:hidden">{initials(user?.name)}</div>
+      </div>
+    </header>
+
+    <aside className="fixed bottom-0 left-0 top-[81px] z-20 hidden w-[248px] bg-[#1b2456] px-4 py-5 text-white lg:block">
+      <div className="flex h-full flex-col">
+        <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-[#b7bbe3]">Workspace</p>
+        <NavigationLinks items={nav} location={location} />
+        <p className="mb-2 mt-8 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-[#b7bbe3]">Records</p>
+        <NavigationLinks items={secondaryNav} location={location} />
+        <div className="mt-auto rounded-xl border border-white/15 bg-white/5 p-3">
+          <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#b7bbe3]" /><p className="text-xs font-bold">Traceable stock movements</p></div>
+          <p className="mt-1 text-[11px] leading-4 text-[#dfe1f5]">Completed operations are recorded in audit history.</p>
+        </div>
+        <div className="mt-4 flex items-center gap-3 border-t border-white/15 px-2 pt-4">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#394584] text-xs font-bold text-white">{initials(user?.name)}</div>
+          <div className="min-w-0"><p className="truncate text-xs font-bold" data-testid="text-user-name-sidebar">{user?.name ?? 'Pharmacy team'}</p><p className="truncate text-[11px] text-[#dfe1f5]">{user?.role ?? 'Inventory operations'}</p></div>
+        </div>
+      </div>
+    </aside>
+
+    {open && <div className="fixed bottom-0 left-0 right-0 top-[81px] z-40 lg:hidden">
+      <button type="button" className="absolute inset-0 h-full w-full bg-foreground/40" aria-label="Close navigation" onClick={() => setOpen(false)} data-testid="button-close-mobile-menu" />
+      <aside id="mobile-navigation" className="relative h-full w-[min(300px,85vw)] overflow-y-auto bg-[#1b2456] px-4 py-5 text-white shadow-xl">
+        <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-[#b7bbe3]">Workspace</p>
+        <NavigationLinks items={nav} location={location} onNavigate={() => setOpen(false)} />
+        <p className="mb-2 mt-8 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-[#b7bbe3]">Records</p>
+        <NavigationLinks items={secondaryNav} location={location} onNavigate={() => setOpen(false)} />
+      </aside>
+    </div>}
+
+    <main className="page-in min-h-[calc(100dvh-81px)] px-4 py-6 md:px-8 md:py-8 lg:ml-[248px] lg:px-10">{children}</main>
+  </div>;
 }
 
 function DashboardPage() {
