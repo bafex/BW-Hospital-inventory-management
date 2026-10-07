@@ -29,6 +29,7 @@ export * from './healthStatus';
 export * from './listMedicinesParams';
 export * from './listMedicinesStatus';
 export * from './medicine';
+export * from './medicineBatchStock';
 export * from './medicineInput';
 export * from './medicineStatus';
 export * from './medicineUpdate';

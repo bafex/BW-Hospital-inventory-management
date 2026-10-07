@@ -9,6 +9,16 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface MedicineBatchStock {
+  batchNumber: string;
+  supplier: string;
+  expiryDate: string;
+  packSize: number;
+  unitsRemaining: number;
+  unopenedPacks: number;
+  looseUnits: number;
+}
+
 export type MedicineStatus = typeof MedicineStatus[keyof typeof MedicineStatus];
 
 
@@ -33,6 +43,7 @@ export interface Medicine {
   batchNumber: string;
   supplier?: string;
   lastMovement?: string;
+  batchStocks: MedicineBatchStock[];
 }
 
 export interface MedicineInput {

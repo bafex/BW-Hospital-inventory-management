@@ -258,9 +258,20 @@ components:
           type: string
       required:
         - status
+    MedicineBatchStock:
+      type: object
+      required: [batchNumber, supplier, expiryDate, packSize, unitsRemaining, unopenedPacks, looseUnits]
+      properties:
+        batchNumber: { type: string }
+        supplier: { type: string }
+        expiryDate: { type: string }
+        packSize: { type: integer }
+        unitsRemaining: { type: integer }
+        unopenedPacks: { type: integer }
+        looseUnits: { type: integer }
     Medicine:
       type: object
-      required: [id, name, genericName, strength, form, category, stockUnits, packSize, minStock, status, expiryDate, batchNumber]
+      required: [id, name, genericName, strength, form, category, stockUnits, packSize, minStock, status, expiryDate, batchNumber, batchStocks]
       properties:
         id: { type: integer }
         name: { type: string }
@@ -276,6 +287,9 @@ components:
         batchNumber: { type: string }
         supplier: { type: string }
         lastMovement: { type: string }
+        batchStocks:
+          type: array
+          items: { $ref: "#/components/schemas/MedicineBatchStock" }
     MedicineInput:
       type: object
       required: [name, genericName, strength, form, category, minStock, packSize]

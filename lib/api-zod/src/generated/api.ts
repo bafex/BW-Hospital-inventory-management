@@ -89,7 +89,16 @@ export const ListMedicinesResponseItem = zod.object({
   "expiryDate": zod.string(),
   "batchNumber": zod.string(),
   "supplier": zod.string().optional(),
-  "lastMovement": zod.string().optional()
+  "lastMovement": zod.string().optional(),
+  "batchStocks": zod.array(zod.object({
+  "batchNumber": zod.string(),
+  "supplier": zod.string(),
+  "expiryDate": zod.string(),
+  "packSize": zod.number().int(),
+  "unitsRemaining": zod.number().int(),
+  "unopenedPacks": zod.number().int(),
+  "looseUnits": zod.number().int()
+}))
 })
 export const ListMedicinesResponse = zod.array(ListMedicinesResponseItem)
 
@@ -126,7 +135,16 @@ export const CreateMedicineResponse = zod.object({
   "expiryDate": zod.string(),
   "batchNumber": zod.string(),
   "supplier": zod.string().optional(),
-  "lastMovement": zod.string().optional()
+  "lastMovement": zod.string().optional(),
+  "batchStocks": zod.array(zod.object({
+  "batchNumber": zod.string(),
+  "supplier": zod.string(),
+  "expiryDate": zod.string(),
+  "packSize": zod.number().int(),
+  "unitsRemaining": zod.number().int(),
+  "unopenedPacks": zod.number().int(),
+  "looseUnits": zod.number().int()
+}))
 })
 
 
@@ -160,7 +178,16 @@ export const UpdateMedicineResponse = zod.object({
   "expiryDate": zod.string(),
   "batchNumber": zod.string(),
   "supplier": zod.string().optional(),
-  "lastMovement": zod.string().optional()
+  "lastMovement": zod.string().optional(),
+  "batchStocks": zod.array(zod.object({
+  "batchNumber": zod.string(),
+  "supplier": zod.string(),
+  "expiryDate": zod.string(),
+  "packSize": zod.number().int(),
+  "unitsRemaining": zod.number().int(),
+  "unopenedPacks": zod.number().int(),
+  "looseUnits": zod.number().int()
+}))
 })
 
 

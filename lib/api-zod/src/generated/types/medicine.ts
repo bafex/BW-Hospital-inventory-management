@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { MedicineBatchStock } from './medicineBatchStock';
 import type { MedicineStatus } from './medicineStatus';
 
 export interface Medicine {
@@ -22,4 +23,5 @@ export interface Medicine {
   batchNumber: string;
   supplier?: string;
   lastMovement?: string;
+  batchStocks: MedicineBatchStock[];
 }

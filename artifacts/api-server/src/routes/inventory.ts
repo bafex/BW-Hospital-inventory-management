@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { and, asc, desc, eq, gt, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, lte, sql } from "drizzle-orm";
 import {
   db,
   auditLogsTable,
@@ -85,6 +85,25 @@ function daysUntil(dateString: string): number {
   return Math.ceil((new Date(`${dateString}T00:00:00`).getTime() - new Date(`${today()}T00:00:00`).getTime()) / 86_400_000);
 }
 
+function sixMonthWindowStart(referenceDate = new Date()): Date {
+  return new Date(Date.UTC(referenceDate.getUTCFullYear(), referenceDate.getUTCMonth() - 5, 1));
+}
+
+function monthlyIssuedTotals(transactions: Array<{ quantity: number; createdAt: Date }>) {
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 5 + index, 1));
+    const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+    return { key, month: new Intl.DateTimeFormat("en", { month: "short", timeZone: "UTC" }).format(date), units: 0 };
+  });
+  const totals = new Map(months.map(({ key }) => [key, 0]));
+  transactions.forEach((transaction) => {
+    const key = transaction.createdAt.toISOString().slice(0, 7);
+    totals.set(key, (totals.get(key) ?? 0) + Math.abs(transaction.quantity));
+  });
+  return months.map(({ key, month }) => ({ month, units: totals.get(key) ?? 0 }));
+}
+
 async function medicineRows() {
   const medicines = await db.select().from(medicinesTable).orderBy(asc(medicinesTable.name));
   const batches = await db.select().from(batchesTable).orderBy(asc(batchesTable.expiryDate));
@@ -108,6 +127,15 @@ async function medicineRows() {
       batchNumber: firstBatch?.batchNumber ?? "—",
       supplier: firstBatch?.supplier ?? "—",
       lastMovement: "Today",
+      batchStocks: medicineBatches.map((batch) => ({
+        batchNumber: batch.batchNumber,
+        supplier: batch.supplier,
+        expiryDate: batch.expiryDate,
+        packSize: batch.packSize,
+        unitsRemaining: batch.unitsRemaining,
+        unopenedPacks: Math.floor(batch.unitsRemaining / batch.packSize),
+        looseUnits: batch.unitsRemaining % batch.packSize,
+      })),
     };
   });
 }
@@ -126,6 +154,13 @@ router.get("/dashboard", async (_req, res): Promise<void> => {
     .innerJoin(medicinesTable, eq(stockTransactionsTable.medicineId, medicinesTable.id))
     .orderBy(desc(stockTransactionsTable.createdAt))
     .limit(6);
+  const issuedTransactions = await db
+    .select({ medicine: medicinesTable.name, quantity: stockTransactionsTable.quantity, createdAt: stockTransactionsTable.createdAt })
+    .from(stockTransactionsTable)
+    .innerJoin(medicinesTable, eq(stockTransactionsTable.medicineId, medicinesTable.id))
+    .where(and(lte(stockTransactionsTable.quantity, 0), gte(stockTransactionsTable.createdAt, sixMonthWindowStart())));
+  const consumptionByMedicine = new Map<string, number>();
+  issuedTransactions.forEach((transaction) => consumptionByMedicine.set(transaction.medicine, (consumptionByMedicine.get(transaction.medicine) ?? 0) + Math.abs(transaction.quantity)));
   const schedules = await chronicRows();
   res.json({
     user: { name: "Ofentse Rakgogo", role: "Pharmacist / Dispensary Officer" },
@@ -142,15 +177,8 @@ router.get("/dashboard", async (_req, res): Promise<void> => {
       { label: "Low stock", value: medicines.filter((medicine) => medicine.status === "low").length },
       { label: "Critical", value: medicines.filter((medicine) => medicine.status === "critical").length },
     ],
-    monthlyConsumption: [
-      { month: "Apr", units: 3820 }, { month: "May", units: 4180 }, { month: "Jun", units: 3960 },
-      { month: "Jul", units: 4520 }, { month: "Aug", units: 4310 }, { month: "Sep", units: 2980 },
-    ],
-    topConsumed: [
-      { medicine: "Paracetamol 500 mg", units: 1280 }, { medicine: "Metformin 500 mg", units: 940 },
-      { medicine: "Amlodipine 5 mg", units: 760 }, { medicine: "Amoxicillin 500 mg", units: 620 },
-      { medicine: "Omeprazole 20 mg", units: 520 },
-    ],
+    monthlyConsumption: monthlyIssuedTotals(issuedTransactions),
+    topConsumed: [...consumptionByMedicine.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([medicine, units]) => ({ medicine, units })),
     recentMovements: transactions.map((transaction) => ({ id: transaction.id, medicine: transaction.medicine, type: transaction.type, quantity: Math.abs(transaction.quantity), time: transaction.createdAt.toISOString(), user: transaction.user })),
     upcomingCollections: schedules.slice(0, 4),
   });
@@ -192,11 +220,12 @@ router.post("/operations/receive", async (req, res): Promise<void> => {
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const data = parsed.data;
   const totalUnits = data.packs * data.packSize + data.looseUnits;
+  if (data.looseUnits >= data.packSize) { res.status(400).json({ error: "Loose units must be fewer than one full pack. Record additional full packs in the packs field." }); return; }
   if (totalUnits <= 0 || daysUntil(data.expiryDate) < 0) { res.status(400).json({ error: "Quantity must be positive and expiry must be in the future." }); return; }
   const result = await db.transaction(async (tx) => {
     const [batch] = await tx.insert(batchesTable).values({ medicineId: data.medicineId, batchNumber: data.batchNumber, supplier: data.supplier, packSize: data.packSize, quantityReceived: totalUnits, unitsRemaining: totalUnits, expiryDate: data.expiryDate }).returning();
     const [transaction] = await tx.insert(stockTransactionsTable).values({ medicineId: data.medicineId, batchId: batch.id, type: "Received", quantity: totalUnits, reference: data.batchNumber }).returning();
-    await tx.insert(auditLogsTable).values({ action: "Stock received", userName: "Ofentse Rakgogo", role: "Inventory Officer", description: `Received ${totalUnits} units in batch ${data.batchNumber}` });
+    await tx.insert(auditLogsTable).values({ action: "Stock received", userName: "Ofentse Rakgogo", role: "Inventory Officer", description: `Received ${data.packs} unopened packs and ${data.looseUnits} loose units (${totalUnits} total) in batch ${data.batchNumber}` });
     return { batch, transaction };
   });
   res.status(201).json({ message: `Received ${totalUnits} units successfully`, updatedStock: (await medicineRows()).find((row) => row.id === data.medicineId)?.stockUnits ?? totalUnits, transactionId: result.transaction.id });
@@ -212,18 +241,21 @@ router.post("/operations/dispense", async (req, res): Promise<void> => {
     result = await db.transaction(async (tx) => {
       const batches = await tx.select().from(batchesTable).where(and(eq(batchesTable.medicineId, data.medicineId), gt(batchesTable.unitsRemaining, 0))).orderBy(asc(batchesTable.expiryDate));
       let remaining = data.quantity;
+      const batchBalances: string[] = [];
       for (const batch of batches) {
         if (daysUntil(batch.expiryDate) < 0) continue;
         const deduction = Math.min(batch.unitsRemaining, remaining);
         if (deduction > 0) {
-          await tx.update(batchesTable).set({ unitsRemaining: batch.unitsRemaining - deduction }).where(eq(batchesTable.id, batch.id));
+          const unitsRemaining = batch.unitsRemaining - deduction;
+          await tx.update(batchesTable).set({ unitsRemaining }).where(eq(batchesTable.id, batch.id));
+          batchBalances.push(`${batch.batchNumber}: ${Math.floor(unitsRemaining / batch.packSize)} unopened packs + ${unitsRemaining % batch.packSize} loose units remaining`);
           remaining -= deduction;
         }
         if (remaining === 0) break;
       }
       if (remaining > 0) throw new Error("Insufficient unexpired stock for this issue.");
       const [transaction] = await tx.insert(stockTransactionsTable).values({ medicineId: data.medicineId, type: "Issued", quantity: -data.quantity, reference: data.prescriptionReference, reason: data.patientReference }).returning();
-      await tx.insert(auditLogsTable).values({ action: "Medicine issued", userName: "Ofentse Rakgogo", role: "Pharmacist", description: `Dispensed ${data.quantity} units against ${data.prescriptionReference}` });
+      await tx.insert(auditLogsTable).values({ action: "Medicine issued", userName: "Ofentse Rakgogo", role: "Pharmacist", description: `Dispensed ${data.quantity} units against ${data.prescriptionReference} using FEFO. Remaining batch balance: ${batchBalances.join("; ")}` });
       return transaction;
     });
   } catch (error) {
@@ -283,6 +315,10 @@ async function buildAlerts(inputMedicines?: Awaited<ReturnType<typeof medicineRo
   medicines.filter((medicine) => daysUntil(medicine.expiryDate) <= 90).forEach((medicine) => alerts.push({ id: medicine.id + 100, type: "expiry", severity: daysUntil(medicine.expiryDate) <= 30 ? "critical" : "warning", title: daysUntil(medicine.expiryDate) < 0 ? "Expired batch" : "Expiring soon", detail: `${daysUntil(medicine.expiryDate)} days remaining · batch ${medicine.batchNumber}`, medicine: `${medicine.name} ${medicine.strength}`, time: medicine.expiryDate }));
   const schedules = await chronicRows();
   schedules.filter((schedule) => schedule.status === "due").forEach((schedule) => alerts.push({ id: schedule.id + 200, type: "chronic", severity: "info", title: "Chronic collection due", detail: `${schedule.displayName} · ${schedule.medicine}`, medicine: schedule.patientReference, time: "Today" }));
+  schedules.filter((schedule) => schedule.status === "upcoming").forEach((schedule) => {
+    const days = daysUntil(schedule.nextCollection);
+    alerts.push({ id: schedule.id + 300, type: "chronic", severity: "info", title: "Prepare chronic medication", detail: `${schedule.quantity} units for ${schedule.displayName} · collection in ${days} day${days === 1 ? "" : "s"}`, medicine: `${schedule.patientReference} · ${schedule.medicine}`, time: schedule.nextCollection });
+  });
   return alerts;
 }
 
@@ -315,10 +351,10 @@ router.post("/replenishment", async (req, res): Promise<void> => {
 
 router.get("/reports/consumption", async (_req, res): Promise<void> => {
   await ensureSeeded();
-  const transactions = await db.select({ medicine: medicinesTable.name, quantity: stockTransactionsTable.quantity, createdAt: stockTransactionsTable.createdAt }).from(stockTransactionsTable).innerJoin(medicinesTable, eq(stockTransactionsTable.medicineId, medicinesTable.id)).where(lte(stockTransactionsTable.quantity, 0));
+  const transactions = await db.select({ medicine: medicinesTable.name, quantity: stockTransactionsTable.quantity, createdAt: stockTransactionsTable.createdAt }).from(stockTransactionsTable).innerJoin(medicinesTable, eq(stockTransactionsTable.medicineId, medicinesTable.id)).where(and(lte(stockTransactionsTable.quantity, 0), gte(stockTransactionsTable.createdAt, sixMonthWindowStart())));
   const totals = new Map<string, number>();
   transactions.forEach((transaction) => totals.set(transaction.medicine, (totals.get(transaction.medicine) ?? 0) + Math.abs(transaction.quantity)));
-  res.json({ monthly: [{ month: "Apr", units: 3820 }, { month: "May", units: 4180 }, { month: "Jun", units: 3960 }, { month: "Jul", units: 4520 }, { month: "Aug", units: 4310 }, { month: "Sep", units: 2980 }], topMedicines: [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([medicine, units]) => ({ medicine, units })), totalIssued: transactions.reduce((sum, transaction) => sum + Math.abs(transaction.quantity), 0) });
+  res.json({ monthly: monthlyIssuedTotals(transactions), topMedicines: [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([medicine, units]) => ({ medicine, units })), totalIssued: transactions.reduce((sum, transaction) => sum + Math.abs(transaction.quantity), 0) });
 });
 
 router.get("/audit", async (_req, res): Promise<void> => {
